@@ -1,0 +1,32 @@
+.btn-menu {
+    display: none;
+}
+
+@media(max-width:768px) {
+
+    #content-wrapper {
+        margin: 0;
+    }
+
+    .d-sm-none {
+        display: none;
+    }
+
+    .sidebar {
+        z-index: 99;
+    }
+
+    #sidebar {
+        width: 0;
+        overflow: hidden;
+        transition: all 0.5s ease;
+    }
+
+    .btn-menu {
+        display: inline-block;
+    }
+
+    .control-label {
+        text-align: left;
+    }
+}

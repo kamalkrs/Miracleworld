@@ -1,0 +1,27 @@
+CRITICAL - 2022-08-23 17:30:11 --> Trait "PragmaRX\Google2FA\Support\QRCode" not found
+#0 [internal function]: CodeIgniter\Debug\Exceptions->shutdownHandler()
+#1 {main}
+CRITICAL - 2022-08-23 17:31:51 --> Trait "PragmaRX\Google2FA\Support\QRCode" not found
+#0 [internal function]: CodeIgniter\Debug\Exceptions->shutdownHandler()
+#1 {main}
+CRITICAL - 2022-08-23 17:32:05 --> Trait "PragmaRX\Google2FA\Support\QRCode" not found
+#0 [internal function]: CodeIgniter\Debug\Exceptions->shutdownHandler()
+#1 {main}
+CRITICAL - 2022-08-23 17:32:21 --> Trait "PragmaRX\Google2FA\Support\QRCode" not found
+#0 [internal function]: CodeIgniter\Debug\Exceptions->shutdownHandler()
+#1 {main}
+CRITICAL - 2022-08-23 17:33:02 --> Trait "PragmaRX\Google2FA\Support\QRCode" not found
+#0 [internal function]: CodeIgniter\Debug\Exceptions->shutdownHandler()
+#1 {main}
+CRITICAL - 2022-08-23 17:36:33 --> Trait "PragmaRX\Google2FA\Support\QRCode" not found
+#0 [internal function]: CodeIgniter\Debug\Exceptions->shutdownHandler()
+#1 {main}
+CRITICAL - 2022-08-23 17:39:02 --> Trait "PragmaRX\Google2FA\Support\QRCode" not found
+#0 [internal function]: CodeIgniter\Debug\Exceptions->shutdownHandler()
+#1 {main}
+CRITICAL - 2022-08-23 17:41:40 --> Trait "PragmaRX\Google2FA\Support\QRCode" not found
+#0 [internal function]: CodeIgniter\Debug\Exceptions->shutdownHandler()
+#1 {main}
+CRITICAL - 2022-08-23 17:54:42 --> Cannot declare class PragmaRX\Google2FA\Google2FA, because the name is already in use
+#0 [internal function]: CodeIgniter\Debug\Exceptions->shutdownHandler()
+#1 {main}

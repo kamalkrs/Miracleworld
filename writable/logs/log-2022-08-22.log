@@ -1,0 +1,2 @@
+ERROR - 2022-08-22 07:03:06 --> Unknown column 'payorder' in 'where clause'
+ERROR - 2022-08-22 07:19:11 --> Email: sendWithMail throwed mail(): Failed to connect to mailserver at &quot;localhost&quot; port 25, verify your &quot;SMTP&quot; and &quot;smtp_port&quot; setting in php.ini or use ini_set()

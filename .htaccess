@@ -1,0 +1,12 @@
+RewriteEngine On
+
+# RewriteCond %{HTTP_HOST} !^www\. [NC]
+# RewriteRule ^(.*)$ http://www.miraccleworld.com/$1 [L,R=301]
+
+# RewriteCond %{HTTPS} off
+# RewriteRule ^(.*)$ https://www.miraccleworld.com/$1 [L,R=301]
+
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)$ index.php/$1 [L]
+
