@@ -99,11 +99,12 @@ class Home extends BaseController
                     'rules' => 'required|matches[cnfpass]',
                     'label' => 'Password'
                 ],
-                'policty' => [
+                'policy' => [
                     'rules' => 'required',
                     'label' => 'Terms & Conditions'
                 ]
             ];
+
             if ($this->validate($rules)) {
 
                 $sponsor = $this->request->getPost('sponsor_id');
@@ -139,6 +140,8 @@ class Home extends BaseController
                     $username = null;
                     if ($random_chk) {
                         $id = $user['id'] = User_model::getRandomUserId();
+                        $user['master_id'] = $id;
+
                         $user['username'] = $username = id2userid($id);
                         $builder->insert($user);
                     } else {
@@ -148,7 +151,7 @@ class Home extends BaseController
 
                         // Create new accounts
                         $builder = $this->db->table("users");
-                        $builder->update(['username' => $username, 'id' => $id], ['slno' => $id]);
+                        $builder->update(['username' => $username, 'id' => $id, 'master_id' => $id], ['slno' => $id]);
                     }
 
                     // $name = $user['first_name'];
@@ -163,7 +166,7 @@ class Home extends BaseController
                     $message = 'Your account has been created successfully with userid : ' . $username . ' and Password: ' . $user['passwd'];
 
                     session()->setFlashdata('success', $message);
-                    return redirect()->to('login');
+                    return redirect()->to('signup');
                 } else {
                     session()->setFlashdata('error', "Opps!! Invalid Sponsor ID");
                 }
@@ -288,148 +291,22 @@ class Home extends BaseController
         }
     }
 
-    function cron_every_minute()
+    function cron_club_payment()
     {
-        $this->cron_payout();
-        $this->cron_payment_check();
+        $us = new User_model();
+        $us->distributeClubIncome();
     }
 
-    function cron_per_day()
-    {
-        $this->cron_campaign_maturity();
-    }
-
-    function cron_payment_check()
-    {
-        $db = db_connect();
-        $list = $db->table("payorder")->orderBy('id', 'DESC')->limit(5)->getWhere(['order_status' => 0, 'txnid !=' => ''])->getResult();
-        $app = new AppConfig();
-        $cps_api = new CoinPaymentsAPI($app->coinPayPrivateKey, $app->coinPayPublicKey, 'json');
-
-        set_time_limit(120);
-
-        foreach ($list as $item) {
-            $st = $cps_api->GetTxInfoSingle($item->txnid);
-
-            if (isset($st['result'])) {
-                $result = $st['result'];
-                $status = $result['status'];
-                $status_text = $result['status_text'];
-                $txn_id = $item->txnid;
-
-                if ($status >= 100 || $status == 1) {
-                    $order = $db->table("payorder")->getWhere(['txnid' => $txn_id])->getRow();
-                    if (is_object($order) && $order->order_status == 0) {
-
-                        $sb = [];
-                        $sb['order_status'] = 1;
-                        $sb['updated'] = date("Y-m-d H:i:s");
-                        $sb['pay_error'] = $status_text;
-
-                        $db->table("payorder")->update($sb, ['id' => $order->id]);
-
-                        $us = new User_model($order->user_id);
-                        $us->credit($order->amount, Dashboard_model::INCOME_FUND_CREDIT, 'Add Fund', $order->id);
-                    }
-                } else if ($status < 0) {
-                    $order = $db->table("payorder")->getWhere(['txnid' => $txn_id])->getRow();
-                    if (is_object($order) && $order->order_status == 0) {
-                        $sb = [];
-                        $sb['order_status'] = -1;
-                        $sb['updated'] = date("Y-m-d H:i:s");
-                        $sb['pay_error'] = $status_text;
-
-                        $db->table("payorder")->update($sb, ['id' => $order->id]);
-                    }
-                }
-            }
-        }
-    }
-
-    function cron_campaign_maturity()
-    {
-        $db = db_connect();
-        $builder = $db->table("wallet");
-        $builder->where('end_date <= CURRENT_TIMESTAMP()');
-        $list = $builder->getWhere(['status' => 1, 'wallet_type' => CAMPAIGN_WALLET])->getResult();
-        foreach ($list as $item) {
-            $us = new User_model($item->user_id);
-            $amount = $item->amount;
-            $us->credit($amount, Dashboard_model::INCOME_FUND_TRANSER, 'Campaign Amount', $item->id);
-
-            // Disable wallet
-            $builder = $db->table("wallet");
-            $builder->update(['status' => 0], ['id' => $item->id]);
-        }
-    }
-
-    function cron_payout()
-    {
-        $db = db_connect();
-        $builder = $db->table("wallet");
-        $builder->where('end_date <= CURRENT_TIMESTAMP()');
-        $list = $builder->getWhere(['status' => 1, 'wallet_type' => COMPOUNDING_WALLET])->getResult();
-        foreach ($list as $item) {
-
-            $thistime = time();
-            $adtime = strtotime($item->end_date);
-            if ($thistime >= $adtime) {
-                $us = new User_model($item->user_id);
-                $amount = $item->amount * 1.01;
-                $us->credit($amount, Dashboard_model::INCOME_COMPOUNDING, 'Compounding', $item->id);
-
-                // Disable wallet
-                $builder = $db->table("wallet");
-                $builder->update(['status' => 0], ['id' => $item->id]);
-            }
-        }
-
-        // Disable Ads on completion of 2 hrs. 
-        $builder = $db->table("ads");
-        $list = $builder->getWhere(['status' => 1])->getResult();
-
-        foreach ($list as $item) {
-            $thistime = time();
-            $adtime = strtotime($item->end_time);
-
-            if ($thistime >= $adtime) {
-                $builder = $db->table("ads");
-                $builder->update(['status' => 0], ['id' => $item->id]);
-
-                $amt    = $item->amount * 0.01;
-                $meamt  = $amt * 0.60;
-                $us     = new User_model($item->user_id);
-                $us->credit($meamt, Dashboard_model::INCOME_ADS, "Ads Run", $item->id);
-
-                // // Pay to top levels
-                $ids    = $us->getSpilTree($item->user_id);
-                $users  = array_splice($ids, 0, 5);
-                $rates  = [20, 10, 5, 3, 2];
-                foreach ($users as $index => $uid) {
-                    $n  = new User_model($uid);
-
-                    $childs = $n->getDirectChilds($uid);
-                    if (count($childs) > $index) {
-                        $a  = $amt * $rates[$index] / 100;
-                        $n->credit($a, Dashboard_model::INCOME_LEVEL, 'Downline Ads Run', $item->id, ($index + 1));
-                    }
-                }
-            }
-        }
-    }
 
     // https://cryptoads.uk/home/ipin_callback
     function pay_confirm()
     {
         // $_POST['private_hash'] = 'ff9b2f9d9ede76a321076a5946e604e6cec4ae6ba79f6c23fd2443bc4cb7607c';
         if ($this->request->getPost('private_hash')) {
-            $app = new AppConfig();
             $db = db_connect();
-
-
-            $paykassa_merchant_id = '18024';                 // the ID of the merchant
-            $paykassa_merchant_password = 'pQQCDIk03F0Qr0Y5bSEf2BI7LXKYtPWR';     // merchant password
-            $test = False;  // False test mode - off, True - Enabled                                          
+            $paykassa_merchant_id = AppConfig::PAYKASSA_MRECHANT_ID;
+            $paykassa_merchant_password = AppConfig::PAYKASSA_MERCHANT_PASSWORD;
+            $test = False;
 
             $paykassa = new PayKassaSCI(
                 $paykassa_merchant_id,      // the ID of the merchant
@@ -511,6 +388,10 @@ class Home extends BaseController
         $db = db_connect();
         $user = $db->table("users")->getWhere(['id' => 1])->getRowArray();
         $db->table("users")->truncate();
+        $user['matching'] = 0;
+        $user['payout'] = 1;
+        $user['status'] = 1;
+        $user['ac_status'] = 1;
         $db->table('users')->insert($user);
 
         $lbl = $db->table("level_manager")->getWhere(['id' => 1])->getRowArray();
@@ -521,6 +402,7 @@ class Home extends BaseController
         $db->table("withdraw")->truncate();
         $db->table("userplans")->truncate();
         $db->table("transaction")->truncate();
+        $db->table("transaction_rebirth")->truncate();
         $db->table("report")->truncate();
         $db->table("payorder")->truncate();
         $db->table("fund_request")->truncate();
@@ -531,6 +413,7 @@ class Home extends BaseController
         $db->table("products")->truncate();
         $db->table("clubmembers")->truncate();
         $db->table("clubwallet")->truncate();
+        $db->table("rebirth")->truncate();
 
         echo "Data reset successfully";
     }

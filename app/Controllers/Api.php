@@ -158,13 +158,22 @@ class Api extends ResourceController
 
             case 'activate':
                 $data = $this->request->getJSON(true);
-                // $data['username'] = 'MR474547';
+                // $user->checkAndAddToClubMembers(1);
+
                 if ($api->checkINPUT(['username'], $data)) {
                     $from_id = user_id();
                     $username = $data['username'];
+                    $wallet_id = $data['wallet'];
 
                     $from = new User_model($from_id);
-                    $bal = $from->getFundBalance();
+
+                    $bal = 0;
+                    if ($wallet_id == FUND_BALANCE) {
+                        $bal = $from->getFundBalance();
+                    } else {
+                        $bal = $from->getWalletBalance();
+                    }
+
                     $jamt = $app->joiningAmount;
 
                     if ($jamt <= $bal) {
@@ -180,7 +189,10 @@ class Api extends ResourceController
 
                             // Debit amount from account
                             $msg = "Activation of " . $tr->id;
-                            $from->debit($jamt, Dashboard_model::CHARGE_ACTIVATE_ACCOUNT, $msg, $tr->id);
+                            if ($wallet_id == FUND_BALANCE)
+                                $from->debit($jamt, Dashboard_model::CHARGE_ACTIVATE_ACCOUNT, $msg, $tr->id);
+                            else
+                                $from->debitWallet($jamt, Dashboard_model::CHARGE_ACTIVATE_ACCOUNT, $msg, $tr->id);
 
                             // Send Activation Email
                             $em = new Email_model();
@@ -226,10 +238,18 @@ class Api extends ResourceController
                 $today = (int)$db->table("topup")->select("sum(qty) as qty")->where('DATE(created) = CURDATE()')->getWhere(['user_id' => user_id()])->getRow()->qty;
                 $maxAllowed = $user->user_rank * 5;
                 $us = new User_model(user_id());
-                $bal = $us->getFundBalance();
+
                 if ($api->checkINPUT(['qty', 'amount'], $data)) {
                     $qty = $data['qty'];
                     $amt = $data['amount'];
+                    $wallet_id = $data['wallet'];
+
+                    $bal = 0;
+                    if ($wallet_id == FUND_BALANCE) {
+                        $bal = $us->getFundBalance();
+                    } else {
+                        $bal = $us->getWalletBalance();
+                    }
 
                     if ($bal >= $amt) {
                         // Saving today topup
@@ -242,7 +262,12 @@ class Api extends ResourceController
 
                         if ($qty <= $maxAllowed) {
 
-                            $user->debit($amt, Dashboard_model::CHARGE_RETOPUP, "$qty Pool Purchase");
+                            if ($wallet_id == FUND_BALANCE) {
+                                $user->debit($amt, Dashboard_model::CHARGE_RETOPUP, "$qty Pool Purchase");
+                            } else {
+                                $user->debitWallet($amt, Dashboard_model::CHARGE_RETOPUP, "$qty Pool Purchase");
+                            }
+
                             for ($i = 1; $i <= $qty; $i++) {
                                 $user->sendToAutoPool(user_id());
                             }
@@ -256,16 +281,92 @@ class Api extends ResourceController
                     }
                 }
                 break;
+            case 'retopup-others':
+                $data = $this->request->getJSON(true);
+                $us = new User_model(user_id());
+                $app = new AppConfig();
+                if ($api->checkINPUT(['qty', 'amount', 'username'], $data)) {
+                    $qty = $data['qty'];
+                    $amt = $data['amount'];
+                    $nm  = $data['username'];
+                    $wallet_id = $data['wallet'];
+
+                    $bal = 0;
+                    if ($wallet_id == FUND_BALANCE) {
+                        $bal = $us->getFundBalance();
+                    } else if ($wallet_id == WALLET_BALANCE) {
+                        $bal = $us->getWalletBalance();
+                    }
+
+                    $other = $db->table('users')->getWhere(['username' => $nm])->getRow();
+                    $jamt = $app->joiningAmount;
+
+                    if ($bal >= $amt) {
+                        for ($i = 1; $i <= $qty; $i++) {
+                            $newId = $us->createDuplicateId($other->id);
+
+                            $msg = "Activation of " . $newId;
+                            if ($wallet_id == FUND_BALANCE)
+                                $us->debit($jamt, Dashboard_model::CHARGE_ACTIVATE_ACCOUNT, $msg, $newId);
+                            else
+                                $us->debitWallet($jamt, Dashboard_model::CHARGE_ACTIVATE_ACCOUNT, $msg, $newId);
+
+                            $user = new User_model();
+                            $user->sendToAutoPool($newId); // Auto pool setup
+
+                            // Credit direct income
+                            $sp = new User_model($other->spil_id);
+                            $sp->credit($app->directIncome, Dashboard_model::INCOME_SPONSOR, 'Account Topup', $newId);
+
+                            // Check and add to club members
+                            $user->checkAndAddToClubMembers($other->spil_id);
+                        }
+                        $api->setOK("Account activated successfully");
+                    } else {
+                        $api->setError('You have In-sufficient funds');
+                    }
+                }
+                break;
+
             case 'retopup':
                 $data = $this->request->getJSON(true);
                 $us = new User_model(user_id());
-                $bal = $us->getFundBalance();
+
+                $app = new AppConfig();
                 if ($api->checkINPUT(['qty', 'amount'], $data)) {
                     $qty = $data['qty'];
                     $amt = $data['amount'];
+                    $wallet_id = $data['wallet'];
+                    $jamt = $app->joiningAmount;
+                    $bal = 0;
+                    if ($wallet_id == FUND_BALANCE) {
+                        $bal = $us->getFundBalance();
+                    } else if ($wallet_id == WALLET_BALANCE) {
+                        $bal = $us->getWalletBalance();
+                    }
 
                     if ($bal >= $amt) {
-                        $api->setError("Working on Re-topup. Will update soon");
+                        for ($i = 1; $i <= $qty; $i++) {
+                            $newId = $us->createDuplicateId(user_id());
+
+                            $msg = "Activation of " . $newId;
+                            if ($wallet_id == FUND_BALANCE)
+                                $us->debit($jamt, Dashboard_model::CHARGE_ACTIVATE_ACCOUNT, $msg, $newId);
+                            else
+                                $us->debitWallet($jamt, Dashboard_model::CHARGE_ACTIVATE_ACCOUNT, $msg, $newId);
+
+                            $user = new User_model();
+                            $user->sendToAutoPool($newId); // Auto pool setup
+
+                            // Credit direct income
+                            $me = User_model::create(user_id());
+                            $sp = new User_model($me->spil_id);
+                            $sp->credit($app->directIncome, Dashboard_model::INCOME_SPONSOR, 'Account Topup', $newId);
+
+                            // Check and add to club members
+                            $user->checkAndAddToClubMembers($me->spil_id);
+                        }
+                        $api->setOK("Account activated successfully");
                     } else {
                         $api->setError('You have In-sufficient funds');
                     }
@@ -292,8 +393,7 @@ class Api extends ResourceController
                 break;
             case 'withdraw':
                 $dashboard = new Dashboard_model();
-                $setting = new Setting_model();
-                $min_limit = $setting->get_option_value('withdraw_min');
+                $min_limit = $app->minWithdrawLimit;
                 $data = $this->request->getJSON(true);
                 // $data = [
                 //     'user_id' => 2,
@@ -306,9 +406,9 @@ class Api extends ResourceController
                     $balance = $user->getFundBalance($user_id);
                     if ($amount <= $balance) {
                         if ($amount < $min_limit) {
-                            $api->setError("Min Withdrawal is Rs " . $min_limit);
+                            $api->setError("Min withdrawal is " . $min_limit);
                         } else {
-                            $dashboard->create_withdraw_request($user_id, $amount, $type, $adrs);
+                            // $dashboard->create_withdraw_request($user_id, $amount, $type, $adrs);
                             $api->setOK("Withdrawal request submitted successfully");
                         }
                     } else {
@@ -414,6 +514,21 @@ class Api extends ResourceController
                     $api->setData($items);
                 }
                 break;
+            case 'get-balance-info':
+                $data = $this->request->getJSON(true);
+                $api->setData($data);
+
+                if ($api->checkINPUT(['user_id'], $data)) {
+                    $ab = new User_model($data['user_id']);
+                    $ob = [
+                        'balance' => $ab->getFundBalance(),
+                        'withdraw_limit' => $ab->getWithdrawLimit($data['user_id']),
+                        'activation_wallet' => $ab->getWalletBalance()
+                    ];
+                    $api->setOK();
+                    $api->setData($ob);
+                }
+                break;
             case 'default':
         }
         return $this->respond($api);
@@ -429,6 +544,22 @@ class Api extends ResourceController
             return $this->respond($api);
         }
         switch ($m) {
+            case 'userinfo':
+                if ($api->check(array('username'))) {
+                    $username = $_GET['username'];
+                    $builder = $db->table('users');
+                    $us = $builder->getWhere(array('username' => $username))->getRow();
+                    if (is_object($us)) {
+                        $api->setOK();
+                        $api->setData($us);
+                    } else {
+                        $api->setError();
+                        $api->setMessage("Opps!! Invalid userid");
+                    }
+                } else {
+                    $api->missing();
+                }
+                break;
             case 'drcr':
                 if ($api->check(array('username', 'dr', 'amount'))) {
                     $username = $_GET['username'];

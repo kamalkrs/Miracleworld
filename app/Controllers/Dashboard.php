@@ -4,6 +4,7 @@ namespace App\Controllers;
 
 use App\Models\Dashboard_model;
 use App\Models\Email_model;
+use App\Models\Setting_model;
 use App\Models\User_model;
 use Config\AppConfig;
 use QRcode;
@@ -51,6 +52,7 @@ class Dashboard extends BaseController
 
         $this->user = new User_model();
         $this->data['bmenu'] = '';
+        $this->data['settings'] = new Setting_model();
     }
 
     function index()
@@ -387,6 +389,11 @@ class Dashboard extends BaseController
                 $builder->where("notes", Dashboard_model::INCOME_SPONSOR);
                 $this->data['arrdata'] = $builder->orderBy('id', 'DESC')->where('user_id', user_id())->get()->getResult();
                 break;
+            case 'auto-pool':
+                $this->data['title'] = "Auto Pool Income History";
+                $builder->where("notes", Dashboard_model::INCOME_POOL);
+                $this->data['arrdata'] = $builder->orderBy('id', 'DESC')->where('user_id', user_id())->get()->getResult();
+                break;
 
             case 'only-income':
                 $builder->where("cr_dr", 'cr');
@@ -397,6 +404,35 @@ class Dashboard extends BaseController
                 break;
         }
         return front_view('dashboard/default', $this->data);;
+    }
+
+    public function club_income()
+    {
+        $this->data['menu'] = 'report';
+        $this->data['main'] = 'club-income';
+        $this->data['tab'] = $tab = isset($_GET['tab']) ? $_GET['tab'] : 'all';
+        $builder = $this->db->table("transaction");
+        if ($tab == 'all') {
+            $this->data['title'] = 'All Club Income';
+            $builder->where(['notes' => Dashboard_model::INCOME_CLUB]);
+        } else if ($tab == 'silver') {
+            $this->data['title'] = 'Silver Club Income';
+            $builder->where(['notes' => Dashboard_model::INCOME_CLUB, 'paylevel' => 1]);
+        } else if ($tab == 'gold') {
+            $this->data['title'] = 'Gold Club Income';
+            $builder->where(['notes' => Dashboard_model::INCOME_CLUB, 'paylevel' => 2]);
+        } else if ($tab == 'platinum') {
+            $this->data['title'] = 'Platinum Club Income';
+            $builder->where(['notes' => Dashboard_model::INCOME_CLUB, 'paylevel' => 3]);
+        } else if ($tab == 'emrald') {
+            $this->data['title'] = 'Emrald Club Income';
+            $builder->where(['notes' => Dashboard_model::INCOME_CLUB, 'paylevel' => 4]);
+        } else if ($tab == 'diamond') {
+            $this->data['title'] = 'Diamond Club Income';
+            $builder->where(['notes' => Dashboard_model::INCOME_CLUB, 'paylevel' => 5]);
+        }
+        $this->data['arrdata'] = $builder->orderBy('id', 'DESC')->where('user_id', user_id())->get()->getResult();
+        return front_view('dashboard/default', $this->data);
     }
 
     public function wallet_history()
@@ -462,6 +498,15 @@ class Dashboard extends BaseController
         return front_view('dashboard/default', $this->data);
     }
 
+    function retopup_others()
+    {
+        $this->data['main'] = 'retopup-others';
+        $this->data['menu'] = 'topup';
+        $us = new User_model(user_id());
+        $this->data['balance'] =  $us->getFundBalance();
+        return front_view('dashboard/default', $this->data);
+    }
+
     function auto_pool()
     {
         $this->data['main'] = 'auto-pool';
@@ -478,6 +523,7 @@ class Dashboard extends BaseController
     function topup_history()
     {
         $this->data['main'] = 'topup-history';
+        $this->data['menu'] = 'topup';
         return front_view('dashboard/default', $this->data);
     }
 

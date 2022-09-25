@@ -16,9 +16,10 @@
     <div id="login" class="global-container p-2">
         <div class="row">
             <div class="col-sm-6 m-auto">
-                <div class="card border-0 login-form">
+                <div class="card border-0 login-form mb-5">
                     <div class="card-body">
                         <h3 class="card-title text-center">Create an account</h3>
+                        <?= front_view('alert'); ?>
                         <div class="card-text">
                             <div v-if="message" class="alert" :class="msgcls">{{ message }}</div>
                             <form action="<?= site_url('signup'); ?>" method="post">

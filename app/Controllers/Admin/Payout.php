@@ -162,7 +162,7 @@ class Payout extends AdminController
     {
         $this->data['main'] = 'payouts/drcr-report';
         $this->data['menu'] = "fund";
-        $this->data['list'] = $this->db->table('transaction')->getWhere(['notes' => Dashboard_model::ADMIN_REPORT])->getResult();
+        $this->data['list'] = $this->db->table('transaction')->getWhere(['notes' => Dashboard_model::INCOME_FUND_CREDIT])->getResult();
         return view('default', $this->data);
     }
 

@@ -15,6 +15,12 @@ class Setting_model extends Master_model
         $this->_global = array();
     }
 
+    function __get(string $name)
+    {
+        $v = $this->get_option_value($name);
+        return $v;
+    }
+
     function all_options($group = '')
     {
         $builder = $this->db->table("options");

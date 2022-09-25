@@ -160,4 +160,45 @@ class Payments extends AdminController
         }
         return redirect()->to(admin_url('payments/payment-history/?status=0'));
     }
+
+    function rebirth_pool()
+    {
+        $this->data['main'] = 'payments/rebirth-pool';
+        $this->data['menu'] = 'payments';
+        $builder = $this->db->table("transaction_rebirth");
+        if (isset($_GET['date'])) {
+            $date = $_GET['date'];
+            $builder->where("DATE(created) = '$date'");
+        }
+        $this->data['items'] = $builder->orderBy('id', 'DESC')->get()->getResult();
+        return view('default', $this->data);
+    }
+
+    function rebirth_pay_single($id)
+    {
+        $ob = $this->db->table("transaction_rebirth")->getWhere(['id' => $id])->getRow();
+        if ($ob->status == 1) {
+            $amt = $ob->amount * 0.95;
+            $m = new User_model($ob->user_id);
+            $m->credit($amt, Dashboard_model::INCOME_REBIRTH, $ob->ref_id);
+
+            $this->db->table('transaction_rebirth')->update(['status' => 0], ['id' => $id]);
+            session()->setFlashdata('success', 'Payment confirmed successfully');
+        }
+        return redirect()->to(admin_url('payments/rebirth-pool'));
+    }
+
+    function rebirth_pay_all()
+    {
+        $items = $this->db->table("transaction_rebirth")->getWhere(['status' => 1])->getResult();
+        foreach ($items as $ob) {
+            $amt = $ob->amount * 0.95;
+            $m = new User_model($ob->user_id);
+            $m->credit($amt, Dashboard_model::INCOME_REBIRTH, $ob->ref_id);
+
+            $this->db->table('transaction_rebirth')->update(['status' => 0], ['id' => $ob->id]);
+            session()->setFlashdata('success', 'Payment confirmed successfully');
+        }
+        return redirect()->to(admin_url('payments/rebirth-pool'));
+    }
 }

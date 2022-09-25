@@ -23,6 +23,28 @@ $app = new AppConfig();
         </div>
         <div v-if="message.length" class="alert" :class="errcls">{{ message }} </div>
         <div class="box">
+            <div class="box-body border-bottom">
+                <div class="row g-2 text-center">
+                    <div class="col">
+                        <div class="py-4 bg-light">
+                            <h6>Main Balance</h6>
+                            <h2>{{ wallet.balance }}</h2>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="py-4 bg-light">
+                            <h6>Activation Wallet</h6>
+                            <h2>{{ wallet.activation_wallet}}</h2>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="py-4 bg-light">
+                            <h6>Withdrawal Limit</h6>
+                            <h2>{{ wallet.withdraw_limit}}</h2>
+                        </div>
+                    </div>
+                </div>
+            </div>
             <div class="box-body">
                 <input type="hidden" name="username" v-model="user_id">
                 <p><b>User Details: </b></p>
@@ -31,15 +53,19 @@ $app = new AppConfig();
                     <b>Mobile: </b>{{ mobile }}<br />
                     <b>Username: </b>{{ username }}
                 </div>
+                <div class="row mb-3">
+                    <label class="col-sm-4 control-label">Wallet</label>
+                    <div class="col-sm-6">
+                        <select v-model="wallet_id" class="form-select">
+                            <option value="1">Main Wallet ({{ wallet.balance }}) </option>
+                            <option value="2">Activation Wallet ({{ wallet.activation_wallet }}) </option>
+                        </select>
+                    </div>
+                </div>
                 <div class="form-group row">
                     <label class="col-sm-4 control-label"> Amount </label>
                     <div class="col-md-6">
                         <input type="text" class="form-control" readonly value="<?= $app->joiningAmount; ?>">
-                    </div>
-                </div>
-                <div class="form-group row">
-                    <label class="col-sm-4 control-label"> Fund Balance </label>
-                    <div class="col-md-6"> <?= $balance; ?>
                     </div>
                 </div>
 
@@ -64,6 +90,7 @@ $app = new AppConfig();
     var vm = new Vue({
         el: '#app',
         data: {
+            fromId: '<?= user_id(); ?>',
             user_id: null,
             name: null,
             mobile: null,
@@ -73,9 +100,24 @@ $app = new AppConfig();
             message: '',
             status: false,
             clicked: false,
-            button: 'Activate Now'
+            button: 'Activate Now',
+            wallet_id: 1,
+            wallet: {
+                balance: '-',
+                withdraw_limit: '-',
+                activation_wallet: '-'
+            }
         },
         methods: {
+            getBalanceInfo: function() {
+                let url = ApiUrl + 'get-balance-info'
+                axios.post(url, {
+                    user_id: this.fromId
+                }).then(result => {
+                    let resp = result.data;
+                    this.wallet = resp.data;
+                })
+            },
             search: function() {
                 let url = ApiUrl + 'userinfo/?username=' + this.user_id;
                 this.error = true;
@@ -118,7 +160,8 @@ $app = new AppConfig();
 
                 let url = ApiUrl + 'activate';
                 axios.post(url, {
-                    username: this.user_id
+                    username: this.user_id,
+                    wallet: this.wallet_id
                 }).then(result => {
                     let resp = result.data;
                     console.log(resp);
@@ -135,6 +178,9 @@ $app = new AppConfig();
                     }
                 })
             }
+        },
+        created: function() {
+            this.getBalanceInfo();
         }
     });
 </script>
