@@ -15,7 +15,7 @@ $me = new User_model(user_id());
         <div class="row  align-items-center mb-2">
             <div class="col-sm-6">
                 <div class="input-group">
-                    <span data-target="#top1" data-copy="<?= $ref; ?>" class="input-group-text btn-copy bg-info" id="basic-addon1">
+                    <span data-target="#top1" data-copy="<?= $ref; ?>" class="input-group-text btn-copy card-tiles" id="basic-addon1">
                         <i class="fa fa-copy"></i>
                     </span>
                     <input type="text" readonly class="form-control btn-copy" placeholder="Referral code" value="<?= $ref; ?>" aria-label="Username" aria-describedby="basic-addon1">
@@ -32,7 +32,17 @@ $me = new User_model(user_id());
                 <div id="top2"></div>
             </div>
         </div>
-
+        <?php
+        if (trim($settings->message) != '') {
+        ?>
+            <div class="alert p-2 alert-danger">
+                <marquee behavior="scroll" direction="left">
+                    <?= $settings->message; ?>
+                </marquee>
+            </div>
+        <?php
+        }
+        ?>
         <div class="clearfix">
             <div class="row g-2">
                 <div class="col-sm-4">
@@ -101,9 +111,9 @@ $me = new User_model(user_id());
 
                 </div>
                 <div class="col-sm-8">
-                    <div class="row g-2 mb-2 text-center text-white">
+                    <div class="row g-2 mb-2 text-center">
                         <div class="col-6 col-sm-4">
-                            <div class="card p-3 bg-info">
+                            <div class="card p-3 card-tiles">
                                 <div class="box-p">
                                     <img src="<?= theme_url('/dashboard/img/teams.png') ?>" width="60" />
                                     <h6>Direct Team</h6>
@@ -112,7 +122,7 @@ $me = new User_model(user_id());
                             </div>
                         </div>
                         <div class="col-6 col-sm-4">
-                            <div class="card p-3 bg-info">
+                            <div class="card p-3 card-tiles">
                                 <div class="box-p">
                                     <img src="<?= theme_url('/dashboard/img/teams.png') ?>" width="60" />
                                     <h6>Total Team</h6>
@@ -122,7 +132,7 @@ $me = new User_model(user_id());
                         </div>
 
                         <div class="col-6 col-sm-4">
-                            <div class="card p-3 bg-info">
+                            <div class="card p-3 card-tiles">
                                 <div class="box-p">
                                     <img src="<?= theme_url('/dashboard/img/sponsor.png') ?>" width="60" />
                                     <h6>Direct Income</h6>
@@ -131,7 +141,7 @@ $me = new User_model(user_id());
                             </div>
                         </div>
                         <div class="col-6 col-sm-4">
-                            <div class="card p-3 bg-info">
+                            <div class="card p-3 card-tiles">
                                 <div class="box-p">
                                     <img src="<?= theme_url('/dashboard/img/level.png') ?>" width="60" />
                                     <h6>Club Income</h6>
@@ -140,7 +150,7 @@ $me = new User_model(user_id());
                             </div>
                         </div>
                         <div class="col-6 col-sm-4">
-                            <div class="card p-3 bg-info">
+                            <div class="card p-3 card-tiles">
                                 <div class="box-p text-center">
                                     <img src="<?= theme_url('/dashboard/img/bank.png') ?>" width="60" />
                                     <h6>Miracle Auto Pool </h6>
@@ -149,7 +159,7 @@ $me = new User_model(user_id());
                             </div>
                         </div>
                         <div class="col-6 col-sm-4">
-                            <div class="card p-3 bg-info">
+                            <div class="card p-3 card-tiles">
                                 <div class="box-p">
                                     <img src="<?= theme_url('/dashboard/img/bank.png') ?>" width="60" />
                                     <h6>Total Income</h6>
@@ -158,7 +168,7 @@ $me = new User_model(user_id());
                             </div>
                         </div>
                         <div class="col-6 col-sm-4">
-                            <div class="card p-3 bg-info">
+                            <div class="card p-3 card-tiles">
                                 <div class="box-p">
                                     <img src="<?= theme_url('/dashboard/img/wallet.png') ?>" width="60" />
                                     <h6>Fund Balance</h6>
@@ -167,7 +177,7 @@ $me = new User_model(user_id());
                             </div>
                         </div>
                         <div class="col-6 col-sm-4">
-                            <div class="card p-3 bg-info">
+                            <div class="card p-3 card-tiles">
                                 <div class="box-p text-center">
                                     <img src="<?= theme_url('/dashboard/img/atm.png') ?>" width="60" />
                                     <h6>Total Withdrawal</h6>
@@ -176,20 +186,29 @@ $me = new User_model(user_id());
                             </div>
                         </div>
                         <div class="col-6 col-sm-4">
-                            <div class="card p-3 bg-info">
+                            <div class="card p-3 card-tiles">
                                 <div class="box-p text-center">
                                     <img src="<?= theme_url('/dashboard/img/bank.png') ?>" width="60" />
                                     <h6>Fund Transfer</h6>
-                                    0.00
+                                    <?= $me->getFundTransfer(); ?>
                                 </div>
                             </div>
                         </div>
                         <div class="col-6 col-sm-4">
-                            <div class="card p-3 bg-info">
+                            <div class="card p-3 card-tiles">
+                                <div class="box-p text-center">
+                                    <img src="<?= theme_url('/dashboard/img/bank.png') ?>" width="60" />
+                                    <h6>Activation Wallet</h6>
+                                    <?= $me->getWalletBalance(); ?>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-sm-4">
+                            <div class="card p-3 card-tiles">
                                 <div class="box-p text-center">
                                     <img src="<?= theme_url('/dashboard/img/bank.png') ?>" width="60" />
                                     <h6>Withdrawal Limit</h6>
-                                    0.00
+                                    <?= $me->getWithdrawLimit(); ?>
                                 </div>
                             </div>
                         </div>

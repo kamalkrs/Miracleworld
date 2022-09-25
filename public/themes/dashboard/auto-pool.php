@@ -11,7 +11,38 @@ $cfg = new AppConfig();
     <div class="col-sm-6 m-auto">
         <div v-if="errmsg.length" class="alert" :class="errcls">{{ errmsg }}</div>
         <div class="box">
+            <div class="box-body border-bottom">
+                <div class="row g-2 text-center">
+                    <div class="col">
+                        <div class="py-4 bg-light">
+                            <h6>Main Balance</h6>
+                            <h2>{{ wallet.balance }}</h2>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="py-4 bg-light">
+                            <h6>Activation Wallet</h6>
+                            <h2>{{ wallet.activation_wallet}}</h2>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="py-4 bg-light">
+                            <h6>Withdrawal Limit</h6>
+                            <h2>{{ wallet.withdraw_limit}}</h2>
+                        </div>
+                    </div>
+                </div>
+            </div>
             <div class="box-body">
+                <div class="row mb-3">
+                    <label class="col-sm-4 control-label">Wallet</label>
+                    <div class="col-sm-6">
+                        <select v-model="wallet_id" class="form-select">
+                            <option value="1">Main Wallet ({{ wallet.balance }}) </option>
+                            <option value="2">Activation Wallet ({{ wallet.activation_wallet }}) </option>
+                        </select>
+                    </div>
+                </div>
                 <div class="row mb-3">
                     <label class="col-sm-4 control-label">Autopool Quantity</label>
                     <div class="col-sm-6">
@@ -22,11 +53,6 @@ $cfg = new AppConfig();
                     <label class="col-sm-4 control-label">Amount</label>
                     <div class="col-sm-6">
                         <input type="text" readonly :value="amount" class="form-control">
-                    </div>
-                </div>
-                <div class="form-group row">
-                    <label class="col-sm-4 control-label"> Fund Balance </label>
-                    <div class="col-md-6"> <?= $balance; ?>
                     </div>
                 </div>
                 <div class="row">
@@ -57,7 +83,13 @@ $cfg = new AppConfig();
             qty: 0,
             amount: 0,
             maxAllowed: 0,
-            disabled: true
+            disabled: true,
+            wallet_id: 1,
+            wallet: {
+                balance: '-',
+                withdraw_limit: '-',
+                activation_wallet: '-'
+            }
         },
         methods: {
             checkMaxRetopup: function() {
@@ -67,6 +99,15 @@ $cfg = new AppConfig();
                 }).then(result => {
                     let resp = result.data;
                     this.maxAllowed = resp.data;
+                })
+            },
+            getBalanceInfo: function() {
+                let url = ApiUrl + 'get-balance-info'
+                axios.post(url, {
+                    user_id: this.fromId
+                }).then(result => {
+                    let resp = result.data;
+                    this.wallet = resp.data;
                 })
             },
             doCalculate: function() {
@@ -97,23 +138,26 @@ $cfg = new AppConfig();
                 let url = ApiUrl + 'pool-purchase';
                 axios.post(url, {
                     qty: this.qty,
-                    amount: this.amount
+                    amount: this.amount,
+                    wallet: this.wallet_id
                 }).then(result => {
                     let resp = result.data;
-                    console.log(resp);
                     this.errmsg = resp.message;
                     this.errcls = resp.success ? 'alert-success' : 'alert-danger';
-                    this.clicked = false;
+
                     if (resp.success) {
                         setTimeout(() => {
                             window.location.reload()
                         }, 2000)
+                    } else {
+                        this.clicked = false;
                     }
                 })
             }
         },
         created: function() {
-            this.checkMaxRetopup()
+            this.checkMaxRetopup();
+            this.getBalanceInfo();
         }
     });
 </script>

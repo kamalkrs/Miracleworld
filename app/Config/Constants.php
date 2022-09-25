@@ -80,5 +80,5 @@ defined('EXIT__AUTO_MAX')      || define('EXIT__AUTO_MAX', 125); // highest auto
 
 
 
-define('CAMPAIGN_WALLET', 1);
-define('COMPOUNDING_WALLET', 2);
+define('FUND_BALANCE', 1);
+define('WALLET_BALANCE', 2);

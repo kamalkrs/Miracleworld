@@ -15,7 +15,8 @@ a { text-decoration: none; }
 .sidebar ul ul { display: none; padding-left: 20px; }
 .sidebar ul li.active ul { display: block; }
 .sidebar ul ul>li a { padding: 10px 0; }
-.control-label { text-align: right; font-weight: 700; }
+.control-label { padding-top: calc(0.375rem + 1px); padding-bottom: calc(0.375rem + 1px); margin-bottom: 0;
+    font-size: inherit; line-height: 1.5; text-align: right; }
 .tree ul { padding-top: 20px; position: relative; transition: all .5s; -webkit-transition: all .5s; -moz-transition: all .5s; }
 .tree li { float: left; text-align: center; list-style-type: none; position: relative; padding: 20px 5px 0 5px; transition: all .5s; -webkit-transition: all .5s; -moz-transition: all .5s; }
 .tree li::after, .tree li::before { content: ''; position: absolute; top: 0; right: 50%; border-top: 1px solid #ccc; width: 50%; height: 20px; }
@@ -89,3 +90,5 @@ a { text-decoration: none; }
 .box{ background: #fff;}
 .box-body{ padding: 12px;}
 .badge-status{ width: 100px; padding: 5px 10px;}
+.card-tiles{ background-color: #ffff00; border: solid 1px #f77947;}
+#app{ padding-bottom: 30px;}

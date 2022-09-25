@@ -25,20 +25,19 @@
                     <td><?= date('d-m-y h:i A', strtotime($ob->updated)); ?></td>
                     <td>
                         <?php
-                        if ($ob->status == 1) echo '<span class="p-1 small text-white bg-success">OPEN</span>';
-                        if ($ob->status == 0) echo '<span class="p-1 small text-white bg-dark">CLOSED</span>';
+                        if ($ob->status == 1) echo '<span class="btn btn-sm bg-success">OPEN</span>';
+                        if ($ob->status == 0) echo '<span class="btn btn-sm bg-light">CLOSED</span>';
                         ?>
                     </td>
                     <td>
-
-                        <a href="<?= site_url('dashboard/support-del/' . $ob->id); ?>" class="btn btn-xs btn-danger delete">Delete</a>
+                        <a href="<?= site_url('dashboard/support-del/' . $ob->id); ?>" class="btn btn-sm btn-danger delete">Delete</a>
                     </td>
                     <td>
-                        <a href="<?= site_url('dashboard/support-view/' . $ob->id); ?>" class="btn btn-xs btn-primary">View</a>
+                        <a href="<?= site_url('dashboard/support-view/' . $ob->id); ?>" class="btn btn-sm btn-primary">View</a>
                         <?php
                         if ($ob->status == 1) {
                         ?>
-                            <a href="<?= site_url('dashboard/support-close/' . $ob->id); ?>" class="btn btn-xs btn-dark">Close</a>
+                            <a href="<?= site_url('dashboard/support-close/' . $ob->id); ?>" class="btn btn-sm btn-dark">Close</a>
                         <?php
                         }
                         ?>

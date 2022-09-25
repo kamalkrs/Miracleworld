@@ -102,6 +102,11 @@
                         <li><a href="<?= admin_url('payout/withdrawal'); ?>"><span class="fa fa-angle-right"></span>Withdrawal History</a></li>
                     </ul>
                 </li>
+                <li class="has-submenu <?= $menu == 'payments' ? 'active' : null; ?>"><a href="#"><i class="fa fa-dashboard"></i>Payments<span class="fa fa-angle-right"></span></a>
+                    <ul>
+                        <li><a href="<?= admin_url("payments/rebirth-pool"); ?>"><span class="fa fa-angle-right"></span>Auto Pool Income</a></li>
+                    </ul>
+                </li>
                 <!-- <li class="has-submenu <?= $menu == 'plans' ? 'active' : null; ?>"><a href="#"><i class="fa fa-dashboard"></i>Plans<span class="fa fa-angle-right"></span></a>
                     <ul>
                         <li><a href="<?= admin_url("plans"); ?>"><span class="fa fa-angle-right"></span>All Plans</a></li>

@@ -1,5 +1,5 @@
 body {
-    background-color: #f0f5ff;
+    background-color: #f8f40e;
     font-family: 'Poppins', sans-serif;
     font-weight: 400;
     overflow-x: hidden;
@@ -88,7 +88,7 @@ fieldset .form-control:focus {
 
 
 body {
-    background-color: #e9f7f5;
+    background-color: #ffff00;
     font-family: 'Poppins', sans-serif;
     font-size: 12px;
 }

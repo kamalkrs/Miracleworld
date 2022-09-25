@@ -6,7 +6,8 @@
         <div>
             <a href="<?= site_url('dashboard/payment-history') ?>" class="btn btn-sm btn-primary">All Report</a>
             <a href="<?= site_url('dashboard/payment-history/?tab=sponsor') ?>" class="btn btn-sm btn-primary">Direct Income</a>
-            <a href="<?= site_url('dashboard/payment-history/?tab=club') ?>" class="btn btn-sm btn-primary">Club Income</a>
+            <a href="<?= site_url('dashboard/payment-history/?tab=auto-pool') ?>" class="btn btn-sm btn-primary">Auto Pool Income</a>
+            <a href="<?= site_url('dashboard/club-income') ?>" class="btn btn-sm btn-primary">Club Income</a>
         </div>
     <?php
     }
@@ -34,7 +35,7 @@
 </div>
 <div class="bg-white p-3">
     <div class="box-p table-responsive">
-        <table class="table data-table">
+        <table class="table table-sm data-table">
             <thead>
                 <tr>
                     <th>Sl No</th>

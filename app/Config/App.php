@@ -24,8 +24,8 @@ class App extends BaseConfig
      * @var string
      */
 
-    public $baseURL = 'http://localhost/miraccleworld/';
-    // public $baseURL = 'https://www.miraccleworld.com/';
+    // public $baseURL = 'http://localhost/miraccleworld/';
+    public $baseURL = 'https://www.miraccleworld.com/';
 
     /**
      * --------------------------------------------------------------------------
@@ -110,7 +110,7 @@ class App extends BaseConfig
      *
      * @var string
      */
-    public $appTimezone = 'Europe/London';
+    public $appTimezone = 'Asia/Kolkata';
 
     /**
      * --------------------------------------------------------------------------

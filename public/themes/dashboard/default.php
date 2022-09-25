@@ -64,10 +64,10 @@ if ($logo == '') {
     <div id="wrapper">
         <!-- Sidebar -->
 
-        <div id="sidebar" class='animated bounceInDown navbar-nav sidebar accordion side' style="background: #3BB951; overflow: auto;">
+        <div id="sidebar" class='animated bounceInDown navbar-nav sidebar accordion side' style="background: #f77947; overflow: auto;">
             <div>
-                <div class="d-flex bg-white align-items-center justify-content-center p-2" target="_blank" href="<?= site_url(); ?>">
-                    <img src="<?= $logo; ?>" class="img-fluid" width="80" />
+                <div style="background-color: #f77947;" class="d-flex align-items-center justify-content-center p-2" target="_blank" href="<?= site_url(); ?>">
+                    <img src="<?= $logo; ?>" class="img-fluid rounded-3" width="80" />
                     <button type="button" onclick="closeNav()" class="btn-close d-block d-md-none" aria-label="Close"></button>
                 </div>
                 <ul class="sidebar-menu">
@@ -89,6 +89,7 @@ if ($logo == '') {
                         <ul>
                             <li><a href='<?= site_url('dashboard/topup'); ?>'>Topup Account </a></li>
                             <li><a href='<?= site_url('dashboard/retopup-self'); ?>'>Retopup Self</a></li>
+                            <li><a href='<?= site_url('dashboard/retopup-others'); ?>'>Retopup Others</a></li>
                             <li><a href='<?= site_url('dashboard/auto-pool'); ?>'>Auto Pool Purchase</a></li>
                             <li><a href='<?= site_url('dashboard/topup-history'); ?>'>Topup History</a></li>
                         </ul>
@@ -127,8 +128,8 @@ if ($logo == '') {
                             Income Report<div class='fa fa-caret-down float-right'></div></a>
                         <ul>
                             <li><a href="<?= site_url('dashboard/payment-history/?tab=sponsor') ?>">Direct Income</a></li>
-                            <li><a href="<?= site_url('dashboard/payment-history/?tab=club') ?>">Club Income</a></li>
-                            <!-- <li><a href="<?= site_url('dashboard/rewards') ?>">Reward Income</a></li> -->
+                            <li><a href="<?= site_url('dashboard/club-income') ?>">Club Income</a></li>
+                            <li><a href="<?= site_url('dashboard/auto-pool') ?>">Autopool Income</a></li>
                             <li><a href="<?= site_url('dashboard/payment-history') ?>">Transaction History</a></li>
 
                         </ul>

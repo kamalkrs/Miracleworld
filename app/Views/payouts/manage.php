@@ -55,6 +55,8 @@
         methods: {
             getUser: function() {
                 let url = ApiUrl + 'userinfo/?username=' + this.username;
+                console.log(url);
+
                 this.userinfo = "Checking...";
                 fetch(url).then(ab => ab.json())
                     .then(resp => {

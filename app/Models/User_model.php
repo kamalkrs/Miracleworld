@@ -423,6 +423,44 @@ class User_model extends Model
     {
         $builder = $this->db->table("transaction");
         $bal = $this->getFundBalance($this->user_id);
+
+        $mainWallet = $amount * 0.75;
+        if ($notes == Dashboard_model::INCOME_FUND_CREDIT) {
+            $mainWallet = $amount;
+        }
+        $m = array();
+        $m['user_id'] = $this->user_id;
+        $m['cr_dr'] = 'cr';
+        $m['amount'] = $mainWallet;
+        $m['notes'] = $notes;
+        $m['created'] = date("Y-m-d H:i:s");
+        $m['ref_id'] = $ref_id;
+        $m['paylevel'] = $level;
+        $m['comments'] = $comments;
+        $m['total_bal'] = $bal + $mainWallet;
+        $builder->insert($m);
+        $lastId = $this->db->insertID();
+
+        if ($notes !== Dashboard_model::INCOME_FUND_CREDIT) {
+            $walletAmt = $amount * 0.25;
+            $builder = $this->db->table("wallet");
+            $m = array();
+            $m['user_id'] = $this->user_id;
+            $m['cr_dr'] = 'cr';
+            $m['amount'] = $walletAmt;
+            $m['notes'] = $notes;
+            $m['created'] = date("Y-m-d H:i:s");
+            $m['ref_id'] = $lastId;
+            $m['comments'] = $comments;
+            $m['status'] = 1;
+            $builder->insert($m);
+        }
+    }
+
+    function creditRebirth($amount, $notes, $comments, $ref_id = 0, $level = 0)
+    {
+        $builder = $this->db->table("transaction_rebirth");
+        $bal = $this->getFundBalance($this->user_id);
         $m = array();
         $m['user_id'] = $this->user_id;
         $m['cr_dr'] = 'cr';
@@ -433,6 +471,7 @@ class User_model extends Model
         $m['paylevel'] = $level;
         $m['comments'] = $comments;
         $m['total_bal'] = $bal + $amount;
+        $m['status'] = 1;
         $builder->insert($m);
     }
 
@@ -450,6 +489,21 @@ class User_model extends Model
         $m['paylevel'] = 0;
         $m['comments'] = $comments;
         $m['total_bal'] = $bal - $amount;
+        $builder->insert($m);
+    }
+
+    function debitWallet($amount, $notes, $comments, $ref_id = 0)
+    {
+        $builder = $this->db->table("wallet");
+        $m = array();
+        $m['user_id'] = $this->user_id;
+        $m['cr_dr'] = 'dr';
+        $m['amount'] = $amount;
+        $m['notes'] = $notes;
+        $m['created'] = date("Y-m-d H:i:s");
+        $m['ref_id'] = $ref_id;
+        $m['status'] = 1;
+        $m['comments'] = $comments;
         $builder->insert($m);
     }
 
@@ -665,7 +719,7 @@ class User_model extends Model
                     $this->sendToAutoPool($pos->sponsor_id);
                     $this->sendToAutoPool($pos->sponsor_id);
                 } else {
-                    $us->credit(10, Dashboard_model::INCOME_REBIRTH, "Joinig of " . $newId, $sb['sponsor_id']);
+                    $us->creditRebirth(10, Dashboard_model::INCOME_REBIRTH, "Joinig of " . $newId, $sb['sponsor_id']);
                     $this->db->table("users")->update(['matching' => $matching], ['id' => $master]);
                     $this->sendToAutoPool($pos->sponsor_id);
                 }
@@ -693,7 +747,7 @@ class User_model extends Model
                     $this->sendToAutoPool($pos->sponsor_id);
                     $this->sendToAutoPool($pos->sponsor_id);
                 } else {
-                    $us->credit(10, Dashboard_model::INCOME_REBIRTH, "Rebirth of " . $newId, $sb['sponsor_id']);
+                    $us->creditRebirth(10, Dashboard_model::INCOME_REBIRTH, "Rebirth of " . $newId, $sb['sponsor_id']);
                     $this->db->table("users")->update(['matching' => $matching], ['id' => $master]);
                     $this->sendToAutoPool($pos->sponsor_id);
                 }
@@ -726,7 +780,7 @@ class User_model extends Model
     {
         $ob = $this->db->table("clubmembers")->getWhere(['user_id' => $spil_id, 'club_id' => 2])->getRow();
         if ($ob == null) {
-            $users = $this->db->table("users")->getWhere(['spil_id' => $spil_id, 'ac_status' => 1])->getNumRows();
+            $users = $this->db->table("users")->getWhere(['spil_id' => $spil_id, 'ac_status' => 1])->getResult();
             $ids = [];
             foreach ($users as $us) {
                 $ids[] = $us->id;
@@ -754,7 +808,7 @@ class User_model extends Model
     {
         $ob = $this->db->table("clubmembers")->getWhere(['user_id' => $spil_id, 'club_id' => 3])->getRow();
         if ($ob == null) {
-            $users = $this->db->table("users")->getWhere(['spil_id' => $spil_id, 'ac_status' => 1])->getNumRows();
+            $users = $this->db->table("users")->getWhere(['spil_id' => $spil_id, 'ac_status' => 1])->getResult();
             $ids = [];
             foreach ($users as $us) {
                 $ids[] = $us->id;
@@ -782,7 +836,7 @@ class User_model extends Model
     {
         $ob = $this->db->table("clubmembers")->getWhere(['user_id' => $spil_id, 'club_id' => 4])->getRow();
         if ($ob == null) {
-            $users = $this->db->table("users")->getWhere(['spil_id' => $spil_id, 'ac_status' => 1])->getNumRows();
+            $users = $this->db->table("users")->getWhere(['spil_id' => $spil_id, 'ac_status' => 1])->getResult();
             $ids = [];
             foreach ($users as $us) {
                 $ids[] = $us->id;
@@ -809,7 +863,7 @@ class User_model extends Model
     {
         $ob = $this->db->table("clubmembers")->getWhere(['user_id' => $spil_id, 'club_id' => 5])->getRow();
         if ($ob == null) {
-            $users = $this->db->table("users")->getWhere(['spil_id' => $spil_id, 'ac_status' => 1])->getNumRows();
+            $users = $this->db->table("users")->getWhere(['spil_id' => $spil_id, 'ac_status' => 1])->getResult();
             $ids = [];
             foreach ($users as $us) {
                 $ids[] = $us->id;
@@ -854,29 +908,26 @@ class User_model extends Model
 
     public function getClubMembers($club = 1)
     {
-        $users = $this->db->table("users")->select("id")->getWhere(['user_rank <=' => $club, 'payout' => 1, 'user_rank >=' => "1"])->getResult();
+        $users = $this->db->table("clubmembers")->getWhere(['club_id' => $club])->getResult();
         $ids = [];
         foreach ($users as $us) {
-            $ids[] = $us->id;
+            $ids[] = $us->user_id;
         }
         return $ids;
     }
 
     public function distributeClubIncome()
     {
-        $refIdA = date("Ymd") . $this->user_id . '1';
-        $refIdB = date("Ymd") . $this->user_id . '2';
-        $refIdC = date("Ymd") . $this->user_id . '3';
-        $refIdD = date("Ymd") . $this->user_id . '4';
-        $refIdE = date("Ymd") . $this->user_id . '5';
-
         $balClubA = $this->getClubBalance(1);
         $idsA = $this->getClubMembers(1);
         if ($balClubA > 0 && count($idsA) > 0) {
             $distValue = (float)$balClubA / count($idsA);
             foreach ($idsA as $id) {
                 $u = new User_model($id);
-                $u->credit($distValue, Dashboard_model::INCOME_CLUB, "Club Income", $refIdA, 1);
+                $refIdA = date("Ymd") . '-' . $id . '-' . '1';
+                $chkdp = $this->db->table('transaction')->getWhere(['ref_id' => $refIdA])->getRow();
+                if ($chkdp == null)
+                    $u->credit($distValue, Dashboard_model::INCOME_CLUB, "Club Income", $refIdA, 1);
             }
         }
         $balClubB = $this->getClubBalance(2);
@@ -885,7 +936,10 @@ class User_model extends Model
             $distValue = (float)$balClubB / count($idsB);
             foreach ($idsB as $id) {
                 $u = new User_model($id);
-                $u->credit($distValue, Dashboard_model::INCOME_CLUB, "Club Income", $refIdB, 2);
+                $refIdB = date("Ymd") . '-' . $id . '-' . '2';
+                $chkdp = $this->db->table('transaction')->getWhere(['ref_id' => $refIdB])->getRow();
+                if ($chkdp == null)
+                    $u->credit($distValue, Dashboard_model::INCOME_CLUB, "Club Income", $refIdB, 2);
             }
         }
         $balClubC = $this->getClubBalance(3);
@@ -894,7 +948,10 @@ class User_model extends Model
             $distValue = (float)$balClubC / count($idsC);
             foreach ($idsC as $id) {
                 $u = new User_model($id);
-                $u->credit($distValue, Dashboard_model::INCOME_CLUB, "Club Income", $refIdC, 3);
+                $refIdC = date("Ymd") . '-' . $id . '-' . '3';
+                $chkdp = $this->db->table('transaction')->getWhere(['ref_id' => $refIdC])->getRow();
+                if ($chkdp == null)
+                    $u->credit($distValue, Dashboard_model::INCOME_CLUB, "Club Income", $refIdC, 3);
             }
         }
         $balClubD = $this->getClubBalance(4);
@@ -903,7 +960,10 @@ class User_model extends Model
             $distValue = (float)$balClubD / count($idsD);
             foreach ($idsD as $id) {
                 $u = new User_model($id);
-                $u->credit($distValue, Dashboard_model::INCOME_CLUB, "Club Income", $refIdD, 4);
+                $refIdD = date("Ymd") . '-' . $id . '-' . '4';
+                $chkdp = $this->db->table('transaction')->getWhere(['ref_id' => $refIdD])->getRow();
+                if ($chkdp == null)
+                    $u->credit($distValue, Dashboard_model::INCOME_CLUB, "Club Income", $refIdD, 4);
             }
         }
         $balClubE = $this->getClubBalance(5);
@@ -912,15 +972,52 @@ class User_model extends Model
             $distValue = (float)$balClubE / count($idsE);
             foreach ($idsE as $id) {
                 $u = new User_model($id);
-                $u->credit($distValue, Dashboard_model::INCOME_CLUB, "Club Income", $refIdE, 5);
+                $refIdE = date("Ymd") . '-' . $id . '-' . '5';
+                $chkdp = $this->db->table('transaction')->getWhere(['ref_id' => $refIdE])->getRow();
+                if ($chkdp == null)
+                    $u->credit($distValue, Dashboard_model::INCOME_CLUB, "Club Income", $refIdE, 5);
             }
         }
     }
 
-    function getWithdrawLimit($user_id)
+    function getWithdrawLimit($user_id = false)
     {
         $amt = 10;
-
         return $amt;
+    }
+
+    function getFundTransfer()
+    {
+        return $this->getIncomeByType($this->user_id, Dashboard_model::INCOME_FUND_TRANSER);
+    }
+
+    function createDuplicateId($user_id)
+    {
+        $db = db_connect();
+        $app = new AppConfig();
+        $builder = $db->table('users');
+        $user = $this->db->table("users")->limit(1)->getWhere(['master_id' => $user_id])->getRowArray();
+        $user['join_date']   = date("Y-m-d H:i:s");
+        $user['ac_active_date']   = date("Y-m-d H:i:s");
+        unset($user['id']);
+
+        $random_chk = $app->useRandomId;
+        $username = null;
+        if ($random_chk) {
+            $id = $user['id'] = self::getRandomUserId();
+            $user['master_id'] = $id;
+            $user['username'] = $username = id2userid($id);
+            $builder->insert($user);
+        } else {
+            $builder->insert($user);
+            $id       = $db->insertID();
+            $username = id2userid($id);
+
+            // Create new accounts
+            $builder = $this->db->table("users");
+            $builder->update(['username' => $username, 'id' => $id, 'master_id' => $id], ['slno' => $id]);
+        }
+
+        return $id;
     }
 }
